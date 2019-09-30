@@ -51,6 +51,10 @@
 # define DEFAULT_DRIVER "null"
 #endif
 
+#ifdef __MINGW32__
+#define __printf__ printf
+#endif
+
 namespace {
 
   std::string actor_name = DEFAULT_ACTOR;
