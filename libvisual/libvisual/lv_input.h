@@ -37,6 +37,7 @@
 #include <libvisual/lv_intrusive_ptr.hpp>
 #include <functional>
 #include <memory>
+#include <functional>
 
 namespace LV {
 
