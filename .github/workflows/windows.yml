@@ -1,0 +1,64 @@
+name: mingw-w64
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  mingw-w64:
+    name: Build and test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Msys2
+        id: cache-msys2
+        uses: actions/cache@v1.1.0
+        with:
+          path: msys64
+          key: ${{ runner.os }}-msys64
+
+      - name: get msys2
+        if: steps.cache-msys2.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest -Outfile msys2.tar.xz -Uri "https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-base-x86_64-latest.tar.xz"
+          xz -d msys2.tar.xz
+          tar -xf msys2.tar
+          rm msys2.tar
+
+      - name: Add msys2 to path
+        run: |
+          echo "::add-path::${env:GITHUB_WORKSPACE}/msys64/mingw64/bin"
+          echo "::add-path::${env:GITHUB_WORKSPACE}/msys64/usr/bin"
+
+      - shell: cmd
+        if: steps.cache-msys2.outputs.cache-hit != 'true'
+        run: bash -lc 'exit'
+
+      - name: Update pacman
+        run: pacman -Syy --needed --ask=20 --noconfirm
+
+      - name: Cache pacman
+        id: cache-pacman
+        uses: actions/cache@v1.1.0
+        with:
+          path: msys64/var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('msys64/var/lib/pacman/sync/mingw64.db') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+
+      - name: Update msys2
+        run: pacman -Suu --needed --ask=20 --noconfirm
+
+      - name: Install packages
+        env:
+          pkg: orc pkg-config cmake gcc libpng SDL gettext
+        run: pacman -S --needed --ask=20 --noconfirm $env:pkg.Split(' ').ForEach({"mingw-w64-x86_64-$_"}) make
+
+      - name: Run CMake
+        env:
+          CFLAGS: -lintl -lwinmm
+        run: cmake -B build -S libvisual -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="${env:GITHUB_WORKSPACE}/msys64"
+
+      - name: Run Make
+        run: make -C build -j 4
