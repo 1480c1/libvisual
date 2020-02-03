@@ -56,9 +56,10 @@ jobs:
         run: pacman -S --needed --ask=20 --noconfirm $env:pkg.Split(' ').ForEach({"mingw-w64-x86_64-$_"}) make
 
       - name: Run CMake
-        env:
-          CFLAGS: -lintl -lwinmm
-        run: cmake -B build -S libvisual -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="${env:GITHUB_WORKSPACE}/msys64"
+        run: |
+          $env:CFLAGS = pkg-config --static --cflags --libs glib-2.0 iconv
+          $env:CXXFLAGS = pkg-config --static --cflags --libs glib-2.0 iconv
+          cmake -B build -S libvisual -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="${env:GITHUB_WORKSPACE}/msys64"
 
       - name: Run Make
         run: make -C build -j 4
