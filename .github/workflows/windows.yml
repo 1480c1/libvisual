@@ -57,8 +57,8 @@ jobs:
 
       - name: Run CMake
         run: |
-          $env:CFLAGS = pkg-config --static --cflags --libs glib-2.0 iconv
-          $env:CXXFLAGS = pkg-config --static --cflags --libs glib-2.0 iconv
+          $env:CFLAGS = "-lwinmm"
+          $env:CXXFLAGS = "-lwinmm"
           cmake -B build -S libvisual -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="${env:GITHUB_WORKSPACE}/msys64" -DENABLE_NLS=OFF
 
       - name: Run Make
