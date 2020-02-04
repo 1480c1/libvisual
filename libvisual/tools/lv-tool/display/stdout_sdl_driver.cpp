@@ -30,6 +30,9 @@
 
 #include <SDL/SDL.h>
 #include <GL/gl.h>
+#ifndef GL_BGR
+#include <GL/glext.h>
+#endif
 #include <array>
 #include <vector>
 #include <cstring>
